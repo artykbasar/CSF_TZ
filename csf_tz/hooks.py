@@ -117,7 +117,6 @@ fixtures = [
                     "Sales Invoice-statutory_details",
                     "Sales Invoice-tra_control_number",
                     "Sales Invoice-witholding_tax_certificate_number",
-                    "Sales Order-cost_center",
                     "Sales Order-default_item_discount",
                     "Sales Order-posting_date",
                     "Stock Entry Detail-column_break_32",
@@ -255,9 +254,9 @@ fixtures = [
 ]
 
 # Override Document Class
-# override_doctype_class = {
-# 	'Salary Slip': 'csf_tz.overrides.csftz_SalarySlip'
-# }
+override_doctype_class = {
+	'Salary Slip': 'csf_tz.overrides.salary_slip.SalarySlip',
+}
 
 # Includes in <head>
 # ------------------
@@ -306,6 +305,7 @@ doctype_js = {
     "Payroll Entry": "csf_tz/payroll_entry.js",
     "Salary Slip": "csf_tz/salary_slip.js",
     "Landed Cost Voucher": "csf_tz/landed_cost_voucher.js",
+    "Additional Salary": "csf_tz/additional_salary.js",
 }
 # doctype_list_js = {"doctype" : "public/js/doctype_list.js"}
 # doctype_tree_js = {"doctype" : "public/js/doctype_tree.js"}
