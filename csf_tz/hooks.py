@@ -255,7 +255,7 @@ fixtures = [
 
 # Override Document Class
 override_doctype_class = {
-	'Salary Slip': 'csf_tz.overrides.salary_slip.SalarySlip',
+    "Salary Slip": "csf_tz.overrides.salary_slip.SalarySlip",
 }
 
 # Includes in <head>
@@ -439,9 +439,13 @@ doc_events = {
     "Payroll Entry": {
         "before_insert": "csf_tz.csftz_hooks.payroll.before_insert_payroll_entry",
         "before_update_after_submit": "csf_tz.csftz_hooks.payroll.before_update_after_submit",
+        "before_cancel": "csf_tz.csftz_hooks.payroll.before_cancel_payroll_entry",
     },
     "Salary Slip": {
         "before_insert": "csf_tz.csftz_hooks.payroll.before_insert_salary_slip"
+    },
+    "Attendance": {
+        "validate": "csf_tz.csftz_hooks.attendance.process_overtime",
     },
 }
 
