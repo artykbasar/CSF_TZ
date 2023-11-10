@@ -1,2 +1,3 @@
 frappe
 erpnext
+Werkzeug==2.2.8
