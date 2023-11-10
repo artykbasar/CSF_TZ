@@ -1,2 +1,3 @@
 frappe
 erpnext
+Werkzeug~=3.0.1
