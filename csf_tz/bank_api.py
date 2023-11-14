@@ -11,7 +11,7 @@ from frappe.utils import get_host_name, flt
 from time import sleep
 import binascii
 import os
-from werkzeug.urls import url_fix
+# from werkzeug.urls import url_fix
 import urllib.parse as urlparse
 from erpnext.accounts.doctype.payment_entry.payment_entry import get_payment_entry
 from frappe.utils.background_jobs import enqueue
@@ -167,7 +167,8 @@ def invoice_submission(doc=None, method=None, fees_name=None):
 @frappe.whitelist(allow_guest=True)
 def receive_callback(*args, **kwargs):
     r = frappe.request
-    uri = url_fix(r.url.replace("+", " "))
+    # uri = url_fix(r.url.replace("+", " "))
+    uri = r.url.replace("+", " ")
     # http_method = r.method
     body = r.get_data()
     # headers = r.headers
