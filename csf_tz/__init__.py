@@ -21,9 +21,15 @@ def load_monkey_patches():
     if patches_loaded:
         return
 
-    patches_loaded = True
+    if not getattr(frappe.local, "site", None):
+        return
 
-    if app_name not in frappe.get_installed_apps():
+    try:
+        installed_apps = frappe.get_installed_apps()
+    except Exception:
+        return
+
+    if app_name not in installed_apps:
         return
 
     for module_name in os.listdir(frappe.get_app_path(app_name, "monkey_patches")):
@@ -31,6 +37,8 @@ def load_monkey_patches():
             continue
 
         importlib.import_module(app_name + ".monkey_patches." + module_name[:-3])
+
+    patches_loaded = True
 
 
 old_get_hooks = frappe.get_hooks
