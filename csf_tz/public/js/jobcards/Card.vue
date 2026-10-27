@@ -1,436 +1,100 @@
-<template>
-  <div justify="center" v-if="Dialog">
-    <v-dialog v-model="Dialog" max-width="900">
-      <v-card class="px-3">
-        <v-card-title class="mt-2">
-          <span class="headline indigo--text">{{
-            cardData.operation.name
-          }}</span>
-          <v-spacer></v-spacer>
-          <div
-            class="stopwatch"
-            style="
-              font-weight: bold;
-              margin: 0px 13px 0px 2px;
-              color: #545454;
-              font-size: 18px;
-              display: inline-block;
-              vertical-align: text-bottom;
-            "
-          >
-            <span class="hours">{{ timer.hours }}</span>
-            <span class="colon">:</span>
-            <span class="minutes">{{ timer.minutes }}</span>
-            <span class="colon">:</span>
-            <span class="seconds">{{ timer.seconds }}</span>
-          </div>
-          <v-spacer></v-spacer>
-          <span class="overline">{{ cardData.name }}</span>
-        </v-card-title>
-        <v-row class="mx-3">
-          <v-col lg="5" md="5" cols="12">
-            <v-list-item-subtitle class="subtitle-1 mb-1">
-              Status: {{ cardData.status }}
-            </v-list-item-subtitle>
-          </v-col>
-          <v-col lg="4" md="4" cols="12">
-            <v-textarea
-              label="Operation Description"
-              auto-grow
-              outlined
-              rows="3"
-              row-height="25"
-              readonly
-              v-model="cardData.operation.description"
-              hide-details
-            >
-            </v-textarea>
-          </v-col>
-          <v-col lg="3" md="3" cols="12">
-            <v-list-item-subtitle class="subtitle-1 mb-1">
-              Production Item: {{ cardData.production_item }}
-            </v-list-item-subtitle>
-            <v-divider></v-divider>
-            <v-autocomplete
-              dense
-              auto-select-first
-              outlined
-              color="indigo"
-              label="Team Leader"
-              v-model="cardData.employee"
-              :items="employees"
-              item-text="name"
-              background-color="white"
-              no-data-text="Employee not found"
-              hide-details
-              :readonly="cardData.employee ? true : false"
-              :filter="customFilter"
-            >
-              <template v-slot:item="data">
-                <template>
-                  <v-list-item-content>
-                    <v-list-item-title
-                      class="indigo--text subtitle-1"
-                      v-html="data.item.name"
-                    ></v-list-item-title>
-                    <v-list-item-subtitle
-                      v-html="`${data.item.employee_name}`"
-                    ></v-list-item-subtitle>
-                  </v-list-item-content>
-                </template>
-              </template>
-            </v-autocomplete>
-          </v-col>
-        </v-row>
-        <v-row class="mx-3">
-          <v-col lg="9" md="9" cols="12">
-            <v-autocomplete
-              dense
-              auto-select-first
-              outlined
-              color="indigo"
-              label="Station Members"
-              v-model="members"
-              :items="employees"
-              item-text="name"
-              background-color="white"
-              no-data-text="Employee not found"
-              hide-details
-              :filter="customFilter"
-              multiple
-            >
-              <template v-slot:item="data">
-                <template>
-                  <v-list-item-content>
-                    <v-list-item-title
-                      class="indigo--text subtitle-1"
-                      v-html="data.item.name"
-                    ></v-list-item-title>
-                    <v-list-item-subtitle
-                      v-html="`${data.item.employee_name}`"
-                    ></v-list-item-subtitle>
-                  </v-list-item-content>
-                </template>
-              </template>
-            </v-autocomplete>
-          </v-col>
-          <v-col lg="9" md="9" cols="12">
-            <v-textarea
-              class="my-2"
-              label="Remarks"
-              auto-grow
-              outlined
-              rows="2"
-              row-height="25"
-              v-model="cardData.remarks"
-              hide-details
-            >
-            </v-textarea>
-          </v-col>
-          <v-col lg="3" md="3" cols="12">
-            <v-list-item-subtitle class="subtitle-1 mb-1">
-              Qty To Manufacture: {{ cardData.for_quantity }}
-            </v-list-item-subtitle>
-            <v-list-item-subtitle class="subtitle-1 mb-1">
-              Qty Completed: {{ cardData.total_completed_qty }}
-            </v-list-item-subtitle>
-          </v-col>
-        </v-row>
-        <v-card-actions class="mx-3">
-          <v-btn
-            v-if="
-              !cardData.job_started &&
-              cardData.total_completed_qty != cardData.for_quantity
-            "
-            @click="start_por"
-            color="success"
-            dark
-            >Start</v-btn
-          >
-          <v-btn
-            v-if="
-              cardData.status == 'On Hold' &&
-              cardData.total_completed_qty != cardData.for_quantity
-            "
-            @click="resume_por"
-            color="warning"
-            dark
-            >Resume</v-btn
-          >
-          <v-btn
-            v-if="
-              cardData.status == 'Work In Progress' &&
-              cardData.total_completed_qty != cardData.for_quantity
-            "
-            @click="pause_por"
-            color="warning"
-            dark
-            >Stop</v-btn
-          >
-          <v-spacer></v-spacer>
-          <v-text-field
-            v-if="
-              cardData.status == 'Work In Progress' &&
-              cardData.total_completed_qty != cardData.for_quantity
-            "
-            outlined
-            color="indigo"
-            label="Completed Qty"
-            background-color="white"
-            hide-details
-            v-model="completed_qty"
-            type="number"
-            dense
-          ></v-text-field>
-          <v-spacer></v-spacer>
-          <v-btn
-            color="primary"
-            dark
-            @click="submit_dialog"
-            v-if="
-              cardData.total_completed_qty == cardData.for_quantity &&
-              cardData.status != 'Completed'
-            "
-            >Submit</v-btn
-          >
-          <v-btn color="error" dark @click="close_dialog">Close</v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
-  </div>
-</template>
+<script setup>
+import { useJobCard } from "./useJobCard.js";
 
-<script>
-import { evntBus } from './bus';
-export default {
-  data: () => ({
-    Dialog: false,
-    cardData: '',
-    employees: '',
-    members: [],
-    completed_qty: 1,
-    timer: {
-      hours: '00',
-      minutes: '00',
-      seconds: '00',
-      interval: '',
-    },
-  }),
-  watch: {
-    Dialog(value) {
-      if (value) {
-        this.get_employees();
-      } else {
-        clearInterval(this.timer.interval);
-      }
-    },
-  },
-  methods: {
-    close_dialog() {
-      this.Dialog = false;
-    },
-    start_job() {
-      let row = frappe.model.add_child(
-        this.cardData,
-        'Job Card Time Log',
-        'time_logs'
-      );
-      row.from_time = frappe.datetime.now_datetime();
-      row.name = '';
-      row.completed_qty = 1;
-      this.cardData.job_started = 1;
-      this.cardData.started_time = row.from_time;
-      this.cardData.status = 'Work In Progress';
-      if (!frappe.flags.resume_job) {
-        this.cardData.current_time = 0;
-      }
-      this.set_timer();
-      this.save();
-    },
-    start_por() {
-      if (!this.cardData.employee) {
-        evntBus.$emit('show_messag', 'Please set Employee');
-      } else {
-        this.start_job();
-      }
-    },
-    resume_por() {
-      frappe.flags.resume_job = 1;
-      this.start_job();
-    },
-    pause_por() {
-      if (
-        this.cardData.for_quantity <
-        this.cardData.total_completed_qty + flt(this.completed_qty)
-      ) {
-        evntBus.$emit(
-          'show_messag',
-          'The completed quantity cannot be greater than the required quantity'
-        );
-        return;
-      }
-      frappe.flags.pause_job = 1;
-      this.cardData.status = 'On Hold';
-      clearInterval(this.timer.interval);
-      this.complete_job();
-    },
-    get_employees() {
-      const vm = this;
-      let employees;
-      frappe.call({
-        method: 'csf_tz.csf_tz.page.jobcards.jobcards.get_employees',
-        args: { company: this.cardData.company },
-        async: false,
-        callback: function (r) {
-          if (r.message) {
-            employees = r.message;
-          }
-        },
-      });
-      this.employees = employees;
-    },
-    customFilter(item, queryText, itemText) {
-      const searchText = queryText.toLowerCase();
-      const textOne = item.name.toLowerCase();
-      const textTwo = item.employee_name.toLowerCase();
-
-      return (
-        textOne.indexOf(searchText) > -1 || textTwo.indexOf(searchText) > -1
-      );
-    },
-    set_timer() {
-      if (this.cardData.status == 'Completed') {
-        return;
-      }
-      const vm = this;
-      let currentIncrement = this.cardData.current_time || 0;
-      if (this.cardData.started_time || this.cardData.current_time) {
-        if (this.cardData.status == 'On Hold') {
-          updateStopwatch(currentIncrement);
-          clearInterval(this.timer.interval);
-        } else {
-          currentIncrement += moment(frappe.datetime.now_datetime()).diff(
-            moment(this.cardData.started_time),
-            'seconds'
-          );
-          initialiseTimer();
-        }
-
-        function initialiseTimer() {
-          vm.timer.interval = setInterval(() => {
-            var current = setCurrentIncrement();
-            updateStopwatch(current);
-          }, 1000);
-        }
-
-        function updateStopwatch(increment) {
-          const hours = Math.floor(increment / 3600);
-          const minutes = Math.floor((increment - hours * 3600) / 60);
-          const seconds = increment - hours * 3600 - minutes * 60;
-
-          vm.timer.hours =
-            hours < 10 ? '0' + hours.toString() : hours.toString();
-          vm.timer.minutes =
-            minutes < 10 ? '0' + minutes.toString() : minutes.toString();
-          vm.timer.seconds =
-            seconds < 10 ? '0' + seconds.toString() : seconds.toString();
-        }
-
-        function setCurrentIncrement() {
-          currentIncrement += 1;
-          return currentIncrement;
-        }
-      }
-    },
-    complete_job(completed_time) {
-      const idx = this.cardData.time_logs.length - 1;
-      this.cardData.time_logs[idx].completed_qty = flt(this.completed_qty);
-      this.completed_qty = 1;
-      this.cardData.time_logs.forEach((d) => {
-        if (d.from_time && !d.to_time) {
-          d.to_time = completed_time || frappe.datetime.now_datetime();
-
-          if (frappe.flags.pause_job) {
-            let currentIncrement =
-              moment(d.to_time).diff(moment(d.from_time), 'seconds') || 0;
-            this.cardData.current_time =
-              currentIncrement + (this.cardData.current_time || 0);
-          } else {
-            this.cardData.started_time = '';
-            this.cardData.job_started = 0;
-            this.cardData.current_time = 0;
-          }
-          this.save();
-        }
-      });
-    },
-    submit_dialog() {
-      this.cardData.status = 'Completed';
-      this.save('Submit');
-      this.close_dialog();
-    },
-    save(action = 'Save') {
-      const vm = this;
-      const doc = { ...this.cardData };
-      doc.members = [];
-      this.members.forEach((element) => {
-        let employee_name =
-          this.employees.find((emp) => emp.name == element).employee_name || '';
-        doc.members.push({ employee: element, employee_name: employee_name });
-      });
-
-      delete doc['operation'];
-      frappe.call({
-        method: 'csf_tz.csf_tz.page.jobcards.jobcards.save_doc',
-        args: {
-          doc: doc,
-          action: action,
-        },
-        async: false,
-        callback: function (r) {
-          if (r.message) {
-            r.message.operation = vm.cardData.operation;
-            vm.members = [];
-            r.message.members.forEach((element) => {
-              vm.members.push(element.employee);
-            });
-            Object.assign(vm.cardData, r.message);
-          }
-        },
-      });
-    },
-  },
-  created: function () {
-    evntBus.$on('open_card', (job_card) => {
-      const vm = this;
-      this.Dialog = true;
-      this.cardData = job_card;
-      this.members = [];
-      frappe.call({
-        method: 'frappe.client.get',
-        args: {
-          doctype: 'Job Card',
-          name: job_card.name,
-        },
-        callback(r) {
-          if (r.message) {
-            vm.cardData = r.message;
-            r.message.members.forEach((element) => {
-              vm.members.push(element.employee);
-            });
-            vm.timer = {
-              hours: '00',
-              minutes: '00',
-              seconds: '00',
-            };
-            vm.set_timer();
-          }
-        },
-      });
-    });
-  },
-};
+const props = defineProps({
+    jobCard: { type: Object, required: true },
+});
+const emit = defineEmits(["close", "saved"]);
+const {
+    card, members, completedQty, busy, elapsedSeconds, search,
+    visibleEmployees, close, startJob, pauseJob, submitJob, timeLabel,
+} = useJobCard(props, emit);
 </script>
 
-<style>
-</style>
+<template>
+    <div class="modal show d-block" role="dialog" aria-modal="true" aria-label="Job Card details">
+        <div class="modal-dialog modal-lg" role="document" style="max-width: 920px">
+            <div class="modal-content">
+                <div class="modal-header align-items-center">
+                    <h4 class="modal-title">{{ card?.operation?.name || props.jobCard.name }}</h4>
+                    <span v-if="card" class="font-weight-bold" aria-label="Elapsed time">
+                        {{ timeLabel(elapsedSeconds) }}
+                    </span>
+                    <button type="button" class="close" aria-label="Close" @click="close">×</button>
+                </div>
+                <div v-if="!card" class="modal-body" role="status">Loading Job Card…</div>
+                <template v-else>
+                    <div class="modal-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <p><strong>Job Card:</strong> {{ card.name }}</p>
+                                <p><strong>Status:</strong> {{ card.status }}</p>
+                                <p><strong>Production Item:</strong> {{ card.production_item }}</p>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="control-label" for="csf-job-description">Operation Description</label>
+                                <textarea id="csf-job-description" class="form-control" rows="3"
+                                    :value="card.operation?.description || ''" readonly></textarea>
+                            </div>
+                        </div>
+                        <div class="form-group mt-3">
+                            <label class="control-label" for="csf-employee-search">Find Employee</label>
+                            <input id="csf-employee-search" v-model="search" class="form-control"
+                                type="search" autocomplete="off" placeholder="Filter employee list" />
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <label class="control-label" for="csf-job-leader">Team Leader</label>
+                                <select id="csf-job-leader" v-model="card.employee" class="form-control"
+                                    :disabled="!!card.employee || busy">
+                                    <option value="">Select an employee</option>
+                                    <option v-for="person in visibleEmployees" :key="person.name"
+                                        :value="person.name">{{ person.name }} — {{ person.employee_name }}</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="control-label" for="csf-job-members">Station Members</label>
+                                <select id="csf-job-members" v-model="members" class="form-control"
+                                    multiple size="4" :disabled="busy">
+                                    <option v-for="person in visibleEmployees" :key="person.name"
+                                        :value="person.name">{{ person.name }} — {{ person.employee_name }}</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group mt-3">
+                            <label class="control-label" for="csf-job-remarks">Remarks</label>
+                            <textarea id="csf-job-remarks" v-model="card.remarks" class="form-control"
+                                rows="2" :disabled="busy"></textarea>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <span><strong>Qty To Manufacture:</strong> {{ card.for_quantity }}</span>
+                            <span><strong>Qty Completed:</strong> {{ card.total_completed_qty }}</span>
+                        </div>
+                    </div>
+                    <div class="modal-footer d-flex flex-wrap">
+                        <button v-if="!card.job_started && card.total_completed_qty != card.for_quantity"
+                            type="button" class="btn btn-success" :disabled="busy"
+                            @click="startJob(false)">Start</button>
+                        <button v-if="card.status === 'On Hold' && card.total_completed_qty != card.for_quantity"
+                            type="button" class="btn btn-warning" :disabled="busy"
+                            @click="startJob(true)">Resume</button>
+                        <button v-if="card.status === 'Work In Progress' && card.total_completed_qty != card.for_quantity"
+                            type="button" class="btn btn-warning" :disabled="busy"
+                            @click="pauseJob">Stop</button>
+                        <label v-if="card.status === 'Work In Progress' && card.total_completed_qty != card.for_quantity"
+                            for="csf-job-completed" class="d-inline-flex align-items-center">
+                            Completed Qty <input id="csf-job-completed" v-model.number="completedQty"
+                                class="form-control ml-2" type="number" min="0"
+                                style="max-width: 100px" :disabled="busy" />
+                        </label>
+                        <button v-if="card.total_completed_qty == card.for_quantity && card.status !== 'Completed'"
+                            type="button" class="btn btn-primary" :disabled="busy"
+                            @click="submitJob">Submit</button>
+                        <button type="button" class="btn btn-default" @click="close">Close</button>
+                    </div>
+                </template>
+            </div>
+        </div>
+    </div>
+    <div class="modal-backdrop show" aria-hidden="true"></div>
+</template>
